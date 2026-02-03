@@ -1,29 +1,85 @@
-# Create T3 App
+# Notion-Lite (Single Page Blocks)
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A super-simple Notion-like editor built as a full-stack take-home exercise. The app supports a **single page** made of **vertically stacked blocks** with backend persistence and lightweight editing controls (no rich-text editor libraries).
 
-## What's next? How do I make an app with this?
+## What’s implemented
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+### Requirements
+- **Two block types**
+  - **Text blocks**: editable content + style (**H1 / H2 / H3 / Paragraph**)
+  - **Image blocks**: editable **source URL**, optional **width**, optional **height**
+- **Vertical layout**
+  - Blocks render **top-to-bottom**, one per row, in a centered editor column.
+- **Persistence via API**
+  - Data is stored in **Postgres** and accessed via **tRPC**.
+- **Editing**
+  - Existing text/image blocks can be edited and are persisted (saved on blur).
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+### Small “Notion-ish” extras
+- **Move Up / Move Down** controls to reorder blocks (ordering persists)
+- **Slash command lite**
+  - Typing `/image` in a text block and pressing **Enter** inserts an image block below
+- **Editable page title** (saved on blur)
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Out of scope (intentional)
+- Auth / multi-user collaboration / sharing
+- Multiple pages UI/navigation
+- Text editor libraries (e.g. Tiptap, Blocknote)
+- Image uploads (URL-only)
+- Undo/redo, real-time editing, other block types
 
-## Learn More
+## Tech stack
+- Next.js (T3 project)
+- tRPC
+- Drizzle ORM
+- Postgres (local)
+- Tailwind CSS
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## Data model
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+### Single page
+A single page is identified by `slug = "home"` and is created automatically if the DB is empty.
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+### Blocks
+Blocks belong to a page and are displayed in `position` order.
 
-## How do I deploy this?
+- `type`: `text | image`
+- `position`: integer ordering key (lower = higher on page)
+- Text fields:
+  - `text`
+  - `textStyle`: `h1 | h2 | h3 | p`
+- Image fields:
+  - `imageSrc` (empty allowed until set)
+  - `imageWidth` (optional)
+  - `imageHeight` (optional)
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+### Ordering strategy
+New blocks use **gapped positions** (e.g. 1000, 2000, 3000…) so future insertion between blocks is simple. Move up/down swaps positions with the nearest neighbor.
+
+## API overview (tRPC)
+
+### Query
+- `page.getHome` → returns `{ page, blocks[] }` (creates the home page if missing)
+
+### Mutations
+- `page.updateTitle`
+- `block.addText`
+- `block.addImage`
+- `block.updateText`
+- `block.updateImage`
+- `block.delete`
+- `block.move(direction: "up" | "down")`
+
+## E2E test notes
+Manual E2E flows are documented in `tests/notion-lite-flow.yml` to keep expected behavior easy to review and maintain.
+
+## Running locally
+
+### Prerequisites
+- Node.js (LTS recommended)
+- `pnpm`
+- Docker (used by `./start-database.sh`)
+
+### Start Postgres
+```bash
+./start-database.sh

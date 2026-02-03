@@ -1,0 +1,96 @@
+- id: first-load-creates-home-page
+  description: Verify app loads and (if DB is empty) creates a default home page and renders the editor shell
+  steps:
+    - Navigate to http://localhost:3000/
+    - Verify the page title input is visible
+    - Verify the page title input value is "Untitled"
+    - Verify the "Add Text" button is visible
+    - Verify the "Add Image" button is visible
+
+- id: add-and-edit-text-block
+  description: Verify user can add a text block, edit its value, and change its style (H1/H2/H3/Paragraph)
+  steps:
+    - Navigate to http://localhost:3000/
+    - Click the "Add Text" button
+    - Verify a new text block textarea appears at the bottom of the block list
+    - Click the newest text block textarea
+    - Enter "Hello Notion Lite" in the newest text block textarea
+    - Click outside the textarea to trigger blur/save
+    - Verify the text "Hello Notion Lite" is visible in the newest text block
+    - In the newest text block, open the "Style" dropdown
+    - Select "H1"
+    - Click outside the dropdown to trigger blur/save (if applicable)
+    - Verify the newest text block is rendered with H1 styling (larger/bolder than paragraph)
+
+- id: add-and-edit-image-block
+  description: Verify user can add an image block, set image source, and customize width/height
+  steps:
+    - Navigate to http://localhost:3000/
+    - Click the "Add Image" button
+    - Verify a new image block appears at the bottom of the block list
+    - Verify the image block shows an input labeled "Image URL" (or "Source")
+    - Enter "https://placehold.co/600x400" in the image block "Image URL" input field
+    - Click outside the input to trigger blur/save
+    - Verify an image preview is visible in the image block
+    - Enter "320" in the "Width" input field for the newest image block
+    - Enter "180" in the "Height" input field for the newest image block
+    - Click outside the inputs to trigger blur/save
+    - Verify the image preview is constrained to approximately 320px wide and 180px tall
+
+- id: move-blocks-up-and-down
+  description: Verify user can reorder blocks using Move Up/Move Down controls and ordering persists
+  steps:
+    - Navigate to http://localhost:3000/
+    - Click the "Add Text" button
+    - Enter "Block A" in the newest text block textarea
+    - Click outside the textarea to trigger blur/save
+    - Click the "Add Text" button
+    - Enter "Block B" in the newest text block textarea
+    - Click outside the textarea to trigger blur/save
+    - Verify "Block A" appears above "Block B" in the block list
+    - In the block containing "Block B", click the "Move Up" button
+    - Verify "Block B" now appears above "Block A" in the block list
+    - Refresh the page
+    - Verify "Block B" still appears above "Block A" in the block list
+
+- id: delete-block
+  description: Verify user can delete a block and it does not reappear after refresh
+  steps:
+    - Navigate to http://localhost:3000/
+    - Click the "Add Text" button
+    - Enter "Delete Me" in the newest text block textarea
+    - Click outside the textarea to trigger blur/save
+    - Verify the text "Delete Me" is visible
+    - In the block containing "Delete Me", click the "Delete" button
+    - Verify the text "Delete Me" is not visible in the block list
+    - Refresh the page
+    - Verify the text "Delete Me" is not visible in the block list
+
+- id: slash-command-image
+  description: Verify typing /image in a text block and pressing Enter inserts an image block below and clears the command text
+  steps:
+    - Navigate to http://localhost:3000/
+    - Click the "Add Text" button
+    - Click the newest text block textarea
+    - Enter "/image" in the newest text block textarea
+    - Press the "Enter" key
+    - Verify a new image block appears directly below the text block
+    - Verify the text block value is empty ("/image" is removed)
+    - Verify focus is in the image block "Image URL" input field
+    - Enter "https://placehold.co/400x250" in the focused "Image URL" input field
+    - Click outside the input to trigger blur/save
+    - Verify an image preview is visible in the image block
+
+- id: persistence-smoke-test
+  description: Verify blocks and edits persist via backend API after a full page reload
+  steps:
+    - Navigate to http://localhost:3000/
+    - Click the "Add Text" button
+    - Enter "Persistent Text" in the newest text block textarea
+    - Click outside the textarea to trigger blur/save
+    - Click the "Add Image" button
+    - Enter "https://placehold.co/500x300" in the newest image block "Image URL" input field
+    - Click outside the input to trigger blur/save
+    - Refresh the page
+    - Verify the text "Persistent Text" is visible
+    - Verify an image preview is visible for the image with source "https://placehold.co/500x300"
