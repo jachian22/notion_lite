@@ -78,8 +78,55 @@ Manual E2E flows are documented in `tests/notion-lite-flow.yml` to keep expected
 ### Prerequisites
 - Node.js (LTS recommended)
 - `pnpm`
-- Docker (used by `./start-database.sh`)
+- Postgres (either via Docker or a local install)
+
+### Install dependencies
+```bash
+pnpm install
+```
+
+### Configure environment
+Create a `.env` file (it’s gitignored) from `.env.example`:
+```bash
+cp .env.example .env
+```
+
+The only required env var is:
+- `DATABASE_URL` (example): `postgresql://postgres:password@localhost:5432/notion_lite`
 
 ### Start Postgres
+Choose one option:
+
+#### Option A: Docker (recommended)
+This repo includes a helper script that starts a Postgres container based on your `DATABASE_URL`:
 ```bash
 ./start-database.sh
+```
+
+Notes:
+- If you see `Port 5432 is already in use`, change the port in `DATABASE_URL` (e.g. `5433`) and rerun.
+- The script uses the database name from `DATABASE_URL` and creates a container named like `<db_name>-postgres`.
+- If you already have Postgres running locally (Homebrew, Postgres.app, etc.), you can skip Docker and use Option B instead.
+
+#### Option B: Local Postgres
+If you have Postgres installed locally, ensure the server is running and create the DB from `DATABASE_URL` (adjust host/port/user/db name as needed):
+```bash
+createdb -h localhost -p 5432 -U postgres notion_lite
+```
+
+If `createdb` isn’t available, you can use `psql` instead:
+```bash
+psql -h localhost -p 5432 -U postgres -c "CREATE DATABASE notion_lite;"
+```
+
+### Run migrations
+```bash
+pnpm db:migrate
+```
+
+### Start the app
+```bash
+pnpm dev
+```
+
+Open `http://localhost:3000`.
